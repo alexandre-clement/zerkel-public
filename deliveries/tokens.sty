@@ -1,0 +1,173 @@
+\ProvidesPackage{tokens}[2019/03/22 provides a style to typeset topics related to computation with tokens]
+\RequirePackage{xcolor}
+\RequirePackage{tikz}
+\RequirePackage{adjustbox}
+\RequirePackage[outline,pdftex]{contour}
+\RequirePackage{stmaryrd}
+\RequirePackage{amssymb}
+\RequirePackage{keycommand}
+\usetikzlibrary{shapes.geometric, calc}
+
+\providecommand{\pdfliteral}[1]{\special{pdf: literal #1}}
+\def\e@tone#1{}
+\def\stringg#1{\expandafter\e@tone\string#1}
+\providecommand{\newcommandbox}[2]{\expandafter\newsavebox\expandafter{\csname\stringg#1@box\endcsname}%
+\expandafter\savebox\expandafter{\csname\stringg#1@box\endcsname}{{#2}}\newcommand{#1}{\expandafter\usebox\expandafter{\csname\stringg#1@box\endcsname}}}
+
+%%%%% Recursive Primitive Functions on Integers
+
+\newlength{\tilebase}
+\newlength{\ctile}
+\newkeycommand{\tilep}[bc=red,tc=yellow][1]{{\begin{tikzpicture}[baseline=-0.35em]
+\node[regular polygon, regular polygon sides=4, rounded corners=2pt, bottom color=\commandkey{bc}!50!gray,top color=\commandkey{tc}!60!gray, draw=black!50!white,inner sep=0.5em] at (0,0) {};
+\begin{scope}
+\path[clip,rounded corners=2pt] (-0.7em,-0.7em) rectangle (0.7em,0.7em);
+\foreach \i in {1,...,19} {
+  \path [fill=white,opacity={0.3/(20+0.3*(1-\i))}] (0em,2em) circle ({(20-\i)/20*0.3em+1.7em});
+}
+\path [fill=white,opacity=0.3] (0.7em,0.7em) circle (0.4em);
+\foreach \i in {1,...,19} {
+  \node[opacity={1/(21-\i)}] at (0,0) {\renewcommand{\typeout}[1]{}\pgfmathsetlength{\ctile}{1.6pt-\i*0.04pt}\contourlength{\ctile}\protect\contour{white!80!gray}{#1}};
+}
+\node at (0,0) {\renewcommand{\typeout}[1]{}\contourlength{0pt}\protect\contour{white!80!gray}{#1}};
+\end{scope}
+\end{tikzpicture}\kern-0.05em}}
+
+
+\usepgfmodule{parser}
+\makeatletter
+\gdef\pgf@parser@cont{%
+  % Ok, defined?
+  \expandafter\let\expandafter\pgf@parser@action%
+  \csname pgf@parser@a@\pgf@parser @\pgf@parser@state @\meaning\pgf@parser@symbol\endcsname%
+  \ifx\pgf@parser@action\relax%
+    \expandafter\let\expandafter\pgf@parser@action%
+    \csname pgf@parser@a@\pgf@parser @all@\meaning\pgf@parser@symbol\endcsname%
+    \ifx\pgf@parser@action\relax%
+    \expandafter\let\expandafter\pgf@parser@action%
+    \csname pgf@parser@a@\pgf@parser @\pgf@parser@state @all\endcsname%
+    \ifx\pgf@parser@action\relax%
+      \PackageError{pgfparse}{Unexpected character
+        '\meaning\pgf@parser@symbol' in parser '\pgf@parser' in state
+        '\pgf@parser@state'}{}%
+    \fi%
+    \fi%
+  \fi%
+  \pgf@parser@action%
+  \ifx\pgf@parser@symbol\pgfutil@sptoken%
+    \expandafter\pgf@parser@rid@space%
+  \else%
+    \expandafter\pgf@parser@rid@other%
+  \fi%
+}
+\def\parsersymbol{\pgf@parser@symbol}
+\makeatother
+
+\makeatletter
+\newcommand{\blank}{\hskip 0pt plus 3pt minus 0pt}
+\AtBeginDocument{%
+\newcommand{\dof}[1]{\tilep[bc=blue,tc=cyan]{\textbf{#1}}}%
+\newcommand{\don}[1]{\tilep[bc=blue,tc=cyan]{{\tiny$\times$}\textsuperscript{\textbf{#1}}}}%
+\newcommandbox{\doS}{\tilep[bc=blue,tc=cyan]{\bfseries S}}%
+\newcommandbox{\doZ}{\tilep[bc=blue,tc=cyan]{\bfseries Z}}%
+\newcommandbox{\doI}{\tilep[bc=blue,tc=cyan]{\bfseries I}}%
+\newcommandbox{\doL}{\tilep[bc=green!60!black,tc=lime]{$\blacktriangleleft$}}%
+\newcommandbox{\doR}{\tilep[bc=green!60!black,tc=lime]{$\blacktriangleright$}}%
+\newcommandbox{\dor}{\tilep{\bfseries R}}%
+\newcommandbox{\doo}{\tilep{\protect\adjustbox{lap=.66\noexpand\width}{o}o}}%
+\newcommandbox{\dom}{\tilep{\protect\adjustbox{set depth=0pt}{$\mu$}}}%
+}
+\newcommand{\itile}[1]{\adjustbox{raise=-\tilebase}{\csname do#1\endcsname}}
+
+\pgfparserdef{fprparser}{initial}{the character 0}{\itile{Z}\blank\allowbreak}
+\pgfparserdef{fprparser}{initial}{the letter Z}   {\itile{Z}\blank\allowbreak}
+\pgfparserdef{fprparser}{initial}{the letter I}   {\itile{I}\blank\allowbreak}
+\pgfparserdef{fprparser}{initial}{the letter S}   {\itile{S}\blank\allowbreak}
+\pgfparserdef{fprparser}{initial}{the character <}{\itile{L}\blank\allowbreak}
+\pgfparserdef{fprparser}{initial}{the character >}{\itile{R}\blank\allowbreak}
+\pgfparserdef{fprparser}{initial}{the letter o}   {\itile{o}\blank\allowbreak}
+\pgfparserdef{fprparser}{initial}{the letter r}   {\itile{r}\blank\allowbreak}
+\pgfparserdef{fprparser}{initial}{the letter R}   {\itile{r}\blank\allowbreak}
+\pgfparserdef{fprparser}{initial}{the letter m}   {\itile{m}\blank\allowbreak}
+\pgfparserdef{fprparser}{initial}{the character (}{\addtolength{\tilebase}{0.25em}}
+\pgfparserdef{fprparser}{initial}{the character )}{\addtolength{\tilebase}{-0.25em}}
+\pgfparserdef{fprparser}{initial}{the character ,}{\kern0.25em}
+\pgfparserdef{fprparser}{initial}{\meaning\@sptoken}{}%space are ignored
+\pgfparserdef{fprparser}{initial}{alignment tab character &}{\pgfparserswitch{final}}
+\pgfparserdef{fprparser}{initial}{the character !}{\pgfparserswitch{custom}}
+\pgfparserdef{fprparser}{initial}{the character '}{\pgfparserswitch{macro}}
+\pgfparserdef{fprparser}{custom}{all}{\adjustbox{raise=-\tilebase}{\tilep[bc=gray,tc=white]{\bfseries\protect\adjustbox{set depth=0pt, set height=1.2ex}{\parsersymbol}}}\blank\allowbreak\pgfparserswitch{initial}}
+\pgfparserdef{fprparser}{macro}{all}{\adjustbox{raise=-\tilebase}{\tilep[bc=violet,tc=magenta!50!white]{\bfseries\protect\adjustbox{set depth=0pt, set height=1.2ex}{\ensuremath{\parsersymbol}}}}\blank\allowbreak\pgfparserswitch{initial}}
+\makeatother
+
+\newcommand{\progI}[1]{\setlength{\tilebase}{0pt}{\pgfparserparse{fprparser}#1&\,}}
+
+%%%%% Recursive Primitive Functions on Sets
+
+\newkeycommand{\tilepset}[bc=red,tc=yellow][1]{{\begin{tikzpicture}[baseline=-0.35em]
+\node[circle, bottom color=\commandkey{bc}!50!gray,top color=\commandkey{tc}!60!gray, draw=black!50!white,inner sep=0.5em] at (0,0) {};
+\begin{scope}
+\path[clip,rounded corners=2pt] (0,0) circle (0.7em);
+\foreach \i in {1,...,19} {
+  \path [fill=white,opacity={0.3/(20+0.3*(1-\i))}] (0em,2em) circle ({(20-\i)/20*0.3em+1.7em});
+}
+\path [fill=white,opacity=0.3] (0.7em,0.7em) circle (0.4em);
+\foreach \i in {1,...,19} {
+  \node[opacity={1/(21-\i)}] at (0,0) {\renewcommand{\typeout}[1]{}\pgfmathsetlength{\ctile}{1.6pt-\i*0.04pt}\contourlength{\ctile}\protect\contour{white!80!gray}{#1}};
+}
+\node at (0,0) {\renewcommand{\typeout}[1]{}\contourlength{0pt}\protect\contour{white!80!gray}{#1}};
+\end{scope}
+\end{tikzpicture}\kern-0.05em}}
+
+
+\makeatletter
+\AtBeginDocument{%
+\newcommand{\setdof}[1]{\tilepset[bc=blue,tc=cyan]{\textbf{#1}}}%
+\newcommand{\setdon}[1]{\tilepset[bc=blue,tc=cyan]{{\tiny$\times$}\textsuperscript{\textbf{#1}}}}%
+\newcommandbox{\setdoS}{\tilepset[bc=blue,tc=cyan]{\bfseries S}}%
+\newcommandbox{\setdoE}{\tilepset[bc=blue,tc=cyan]{\ensuremath{\emptyset}}}%
+\newcommandbox{\setdoP}{\tilepset[bc=blue,tc=cyan]{\ensuremath{\kern-0.4pt\adjustbox{lap=0.5\width,scale=0.8, raise=-0.1em}{$\bigcup$}\adjustbox{scale=2,lap=-0.5\width, raise=-0.35em}{$\cdot$}}}}%
+\newcommandbox{\setdois}{\tilepset[bc=blue,tc=cyan]{\ensuremath{\in}}}%
+\newcommandbox{\setdoin}{\tilepset{\ensuremath{\in}}}%
+\newcommandbox{\setdoMinus}{\tilepset[bc=blue,tc=cyan]{\ensuremath{\setminus}}}%
+%\newcommandbox{\setdoMap}{\tilepset[bc=blue,tc=cyan]{\ensuremath{\bigcup\!\!\!\!\!\bigcup}}}%
+\newcommandbox{\setdoMap}{\tilepset[bc=blue,tc=cyan]{\ensuremath{\mapsto}}}%
+\newcommandbox{\setdoPaire}{\tilepset[bc=blue,tc=cyan]{\ensuremath{\{\!..\!\}}}}%
+\newcommandbox{\setdoI}{\tilepset[bc=blue,tc=cyan]{\bfseries I}}%
+\newcommandbox{\setdoL}{\tilepset[bc=green!60!black,tc=lime]{$\blacktriangleleft$}}%
+\newcommandbox{\setdoR}{\tilepset[bc=green!60!black,tc=lime]{$\blacktriangleright$}}%
+\newcommandbox{\setdor}{\tilepset{\bfseries R}}%
+\newcommandbox{\setdoo}{\tilepset{\protect\adjustbox{lap=.66\noexpand\width}{o}o}}%
+\newcommandbox{\setdom}{\tilepset{\protect\adjustbox{set depth=0pt}{$\mu$}}}%
+}
+\newcommand{\stile}[1]{\adjustbox{raise=-\tilebase}{\csname setdo#1\endcsname}}
+
+\pgfparserdef{setfprparser}{initial}{the character 0}{\stile{E}\blank\allowbreak}
+\pgfparserdef{setfprparser}{initial}{the letter E}   {\stile{E}\blank\allowbreak}
+\pgfparserdef{setfprparser}{initial}{the letter I}   {\stile{I}\blank\allowbreak}
+\pgfparserdef{setfprparser}{initial}{the letter S}   {\stile{S}\blank\allowbreak}
+\pgfparserdef{setfprparser}{initial}{the character <}{\stile{L}\blank\allowbreak}
+\pgfparserdef{setfprparser}{initial}{the character >}{\stile{R}\blank\allowbreak}
+\pgfparserdef{setfprparser}{initial}{the letter o}   {\stile{o}\blank\allowbreak}
+\pgfparserdef{setfprparser}{initial}{the letter r}   {\stile{r}\blank\allowbreak}
+\pgfparserdef{setfprparser}{initial}{the letter R}   {\stile{r}\blank\allowbreak}
+\pgfparserdef{setfprparser}{initial}{the letter m}   {\stile{m}\blank\allowbreak}
+\pgfparserdef{setfprparser}{initial}{the letter P}   {\stile{Paire}\blank\allowbreak}
+\pgfparserdef{setfprparser}{initial}{the letter M}   {\stile{Map}\blank\allowbreak}
+\pgfparserdef{setfprparser}{initial}{the character +}{\stile{P}\blank\allowbreak}
+\pgfparserdef{setfprparser}{initial}{the character -}{\stile{Minus}\blank\allowbreak}
+\pgfparserdef{setfprparser}{initial}{the character ?}{\stile{is}\blank\allowbreak}
+\pgfparserdef{setfprparser}{initial}{the character :}{\stile{in}\blank\allowbreak}
+\pgfparserdef{setfprparser}{initial}{the character (}{\addtolength{\tilebase}{0.25em}}
+\pgfparserdef{setfprparser}{initial}{the character )}{\addtolength{\tilebase}{-0.25em}}
+\pgfparserdef{setfprparser}{initial}{the character ,}{\kern0.25em}
+\pgfparserdef{setfprparser}{initial}{\meaning\@sptoken}{}
+\pgfparserdef{setfprparser}{initial}{alignment tab character &}{\pgfparserswitch{final}}
+\pgfparserdef{setfprparser}{initial}{the character !}{\pgfparserswitch{custom}}
+\pgfparserdef{setfprparser}{initial}{the character '}{\pgfparserswitch{macro}}
+\pgfparserdef{setfprparser}{custom}{all}{\adjustbox{raise=-\tilebase}{\tilepset[bc=gray,tc=white]{\bfseries\protect\adjustbox{set depth=0pt, set height=1.2ex}{\parsersymbol}}}\blank\allowbreak\pgfparserswitch{initial}}
+\pgfparserdef{setfprparser}{macro}{all}{\adjustbox{raise=-\tilebase}{\tilepset[bc=violet,tc=magenta!50!white]{\bfseries\protect\adjustbox{set depth=0pt, set height=1.2ex}{\ensuremath{\parsersymbol}}}}\blank\allowbreak\pgfparserswitch{initial}}
+\makeatother
+
+\newcommand{\progS}[1]{\setlength{\tilebase}{0pt}{\pgfparserparse{setfprparser}#1&\,}}
+
